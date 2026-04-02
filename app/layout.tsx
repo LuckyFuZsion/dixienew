@@ -11,8 +11,8 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
-/** OG image in /public — filename has spaces; path must be URL-encoded in metadata. */
-const ogImagePath = "/Opengraph%20(28).png"
+/** OG image in /public */
+const ogImagePath = "/Opengraph.png"
 
 const leaderboardName = "$4K Wager Race"
 const casinoName = "Bombastic Casino"

@@ -19,7 +19,8 @@ export type LeaderboardPlayer = z.infer<typeof playerSchema>
 
 export async function fetchLeaderboardPlayers(): Promise<LeaderboardPlayer[]> {
   const res = await fetch(BOMBASTIC_LEADERBOARD_JSON_URL, {
-    next: { revalidate: 60 },
+    cache: "no-store",
+    next: { revalidate: 0 },
   })
   if (!res.ok) {
     throw new Error(`Leaderboard HTTP ${res.status}`)

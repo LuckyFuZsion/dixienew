@@ -39,7 +39,7 @@ function splitDuration(ms: number): { d: number; h: number; m: number; s: number
 }
 
 async function leaderboardFetcher(url: string): Promise<LeaderboardPlayer[]> {
-  const res = await fetch(url)
+  const res = await fetch(url, { cache: "no-store" })
   if (!res.ok) throw new Error("Leaderboard unavailable")
   return res.json()
 }
@@ -90,11 +90,14 @@ export default function GamerPage() {
     return () => window.clearInterval(id)
   }, [])
 
+  // Use a per-load key so we never render an old SWR-cached response on mount.
+  const leaderboardKey = useMemo(() => `/api/leaderboard?t=${Date.now()}`, [])
+
   const {
     data: leaderboardData,
     isLoading,
     error: leaderboardError,
-  } = useSWR<LeaderboardPlayer[]>("/api/leaderboard", leaderboardFetcher, {
+  } = useSWR<LeaderboardPlayer[]>(leaderboardKey, leaderboardFetcher, {
     refreshInterval: 60_000,
     revalidateOnFocus: true,
   })

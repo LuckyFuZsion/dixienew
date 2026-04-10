@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 const rye = Rye({ weight: "400", subsets: ["latin"] })
 const NAMES_STORAGE_KEY = "gun_barrel_wheel_names_v1"
 const DEFAULT_NAMES = ["Sara", "Mike", "Jessica", "Chris", "Emma", "David"] as const
+const MAX_WHEEL_NAME_LABELS = 8
 
 export default function GunBarrelWheelPage() {
   const [names, setNames] = useState<string[]>([...DEFAULT_NAMES])
@@ -48,6 +49,19 @@ export default function GunBarrelWheelPage() {
   }, [names])
 
   const sliceAngle = useMemo(() => 360 / Math.max(1, names.length), [names.length])
+  const showNamesOnWheel = names.length <= MAX_WHEEL_NAME_LABELS
+  const markerRadius = useMemo(() => {
+    if (names.length <= 8) return 120
+    if (names.length <= 12) return 108
+    if (names.length <= 16) return 96
+    return 84
+  }, [names.length])
+  const wheelLabelClass = useMemo(() => {
+    if (names.length <= 8) return "w-16 text-xs"
+    if (names.length <= 12) return "w-16 text-[11px]"
+    if (names.length <= 16) return "w-14 text-[10px]"
+    return "w-12 text-[10px]"
+  }, [names.length])
 
   const unlockAudio = useCallback(async () => {
     if (audioUnlocked) return
@@ -96,7 +110,10 @@ export default function GunBarrelWheelPage() {
       const list = namesRef.current
       if (list.length === 0) return null
       const normalized = ((finalRotation % 360) + 360) % 360
-      const index = Math.floor((360 - normalized) / sliceAngle) % list.length
+      // Pointer is at 0deg (top). Convert pointer position into wheel-space, then pick
+      // the closest slice center by offsetting half a slice before flooring.
+      const pointerInWheelSpace = (360 - normalized) % 360
+      const index = Math.floor((pointerInWheelSpace + sliceAngle / 2) / sliceAngle) % list.length
       return list[index] ?? null
     },
     [sliceAngle]
@@ -163,11 +180,21 @@ export default function GunBarrelWheelPage() {
               className="absolute flex h-full w-full items-center justify-center"
               style={{ transform: `rotate(${i * sliceAngle}deg)` }}
             >
-              <div className="flex flex-col items-center" style={{ transform: `translateY(-120px)` }}>
+              <div
+                className="flex flex-col items-center"
+                style={{ transform: `translateY(-${markerRadius}px)` }}
+              >
                 <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-yellow-900 bg-gradient-to-br from-yellow-300 to-yellow-700 shadow-lg">
-                  <div className="h-4 w-4 rounded-full bg-yellow-100" />
+                  {showNamesOnWheel ? (
+                    <div className="h-4 w-4 rounded-full bg-yellow-100" />
+                  ) : (
+                    <span className="text-xs font-black tabular-nums text-yellow-950">{i + 1}</span>
+                  )}
                 </div>
-                <span className="mt-2 w-16 rounded border border-yellow-700 bg-yellow-900/80 px-1 text-center text-xs font-bold text-yellow-200">
+                <span
+                  title={name}
+                  className={`mt-3 inline-block truncate whitespace-nowrap rounded border border-yellow-700 bg-yellow-900/80 px-1 text-center font-bold text-yellow-200 rotate-90 origin-center ${wheelLabelClass}`}
+                >
                   {name}
                 </span>
               </div>
